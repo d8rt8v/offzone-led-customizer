@@ -1,5 +1,15 @@
 # offzone-led-customizer
 
+## Install
+
+### GitHub shorthand (owner/repo)
+
+`d8rt8v/offzone-led-customizer`
+
+```
+npx skills add d8rt8v/offzone-led-customizer
+```
+
 An agent skill (and standalone toolkit) for customizing LED animations on the
 **OFFZONE 2026 conference badge** — an STM32 board with a USB Virtual COM
 Port — right over its serial console, no flashing needed.
@@ -22,12 +32,6 @@ Port — right over its serial console, no flashing needed.
 - Cross-platform: auto-detects the port on Windows (`COM<n>`), Linux
   (`/dev/ttyACM<n>`) and macOS (`/dev/cu.usbmodem<n>`), with platform
   gotchas (dialout group, ModemManager, `cu` vs `tty`) documented.
-
-## Install as an agent skill
-
-```
-npx skills add d8rt8v/offzone-led-customizer
-```
 
 ## Use it directly
 
