@@ -330,6 +330,27 @@ def decode(data: bytes) -> str:
 
 
 # -------------------------------------------------------------- animation --
+def build_flow() -> LedSequence:
+    """Soft flowing rainbow ("переливание"): every LED slowly rotates through
+    the hue wheel with a constant 90-degree offset between neighbours — a
+    perpetual gradient wash, no heads or flashes. Gentle pastel brightness.
+    The last segment of each LED ends at hue 359 (~0), so the loop restart
+    is invisible. ~8 s per hue revolution at 30 fps."""
+    seq = LedSequence()
+    segments, seg_len, step = 8, 30, 45
+    S, V = 70, 28                     # pastel and dim — easy on the eyes
+    for s in range(segments):
+        with seq.frame(s * seg_len):
+            for led in range(4):
+                base = led * 90
+                h0 = (base + s * step) % 360
+                raw = (base + (s + 1) * step) % 360
+                h1 = 359 if raw == 0 else raw
+                seq.select(led)
+                seq.animate_hsv(h0, S, V, h1, S, V, length=seg_len)
+    return seq
+
+
 def build_rainbow() -> LedSequence:
     """Rainbow serpent: the head glides ping-pong across the LEDs while its
     hue rotates around the color wheel; every LED it passes keeps that hue
@@ -455,11 +476,11 @@ def upload(data: bytes, fps: int, port: str | None) -> None:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="OFFZONE badge LED toolkit")
-    ap.add_argument("--upload", nargs="?", const=None, metavar="PORT",
+    ap.add_argument("--upload", nargs="?", const="", metavar="PORT",
                     help="upload animation; without a value the badge port is "
                          "auto-detected (COM<n> / /dev/ttyACM<n>)")
-    ap.add_argument("--preset", choices=("rainbow", "comet"), default="rainbow",
-                    help="animation to build/upload (default rainbow)")
+    ap.add_argument("--preset", choices=("flow", "rainbow", "comet"), default="flow",
+                    help="animation to build/upload (default flow)")
     ap.add_argument("--fps", type=int, default=30, help="fps to set after upload (5..100)")
     ap.add_argument("--decode", help="hex string to decode instead of building")
     ap.add_argument("--console", nargs="+", metavar="CMD",
@@ -484,11 +505,12 @@ def main() -> int:
         return 0
 
     self_test()
-    data = (build_rainbow() if args.preset == "rainbow" else build_snake()).compile()
+    builders = {"flow": build_flow, "rainbow": build_rainbow, "comet": build_snake}
+    data = builders[args.preset]().compile()
     print(f"led load {len(data)}")
     print(data.hex().upper())
-    if args.upload:
-        upload(data, args.fps, args.upload)
+    if args.upload is not None:
+        upload(data, args.fps, args.upload or None)
     return 0
 
 
