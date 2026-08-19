@@ -335,9 +335,9 @@ def build_flow() -> LedSequence:
     the hue wheel with a constant 90-degree offset between neighbours — a
     perpetual gradient wash, no heads or flashes. Gentle pastel brightness.
     The last segment of each LED ends at hue 359 (~0), so the loop restart
-    is invisible. ~8 s per hue revolution at 30 fps."""
+    is invisible. ~3.2 s per hue revolution at 30 fps."""
     seq = LedSequence()
-    segments, seg_len, step = 8, 30, 45
+    segments, seg_len, step = 8, 12, 45
     S, V = 70, 28                     # pastel and dim — easy on the eyes
     for s in range(segments):
         with seq.frame(s * seg_len):
