@@ -2,10 +2,6 @@
 
 ## Install
 
-### GitHub shorthand (owner/repo)
-
-`d8rt8v/offzone-led-customizer`
-
 ```
 npx skills add d8rt8v/offzone-led-customizer
 ```
