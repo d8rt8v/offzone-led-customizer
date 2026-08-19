@@ -330,6 +330,40 @@ def decode(data: bytes) -> str:
 
 
 # -------------------------------------------------------------- animation --
+PALETTES = (                     # one cycle = one family of shades
+    (15, 30, 45, 60),            # sunset: red -> amber -> yellow
+    (120, 135, 150, 165),        # mint:   green -> teal
+    (200, 215, 230, 245),        # ocean:  cyan -> blue
+    (285, 300, 315, 330),        # neon:   violet -> magenta -> pink
+)
+
+
+def build_palette() -> LedSequence:
+    """Four shade themes take turns every cycle (sunset, mint, ocean, neon):
+    each LED sways gently around its own hue, then everything crossfades
+    smoothly into the next family. Soft pastel brightness, seamless loop
+    (~8 s at 30 fps, ~2 s per theme)."""
+    seq = LedSequence()
+    S, V, sway = 75, 28, 14
+    drift, fade = 20, 20
+    for k, pal in enumerate(PALETTES):
+        nxt = PALETTES[(k + 1) % len(PALETTES)]
+        t = k * 3 * (drift + fade)
+        with seq.frame(t):                       # sway up around the hue
+            for led, hue in enumerate(pal):
+                seq.select(led)
+                seq.animate_hsv(hue - sway, S, V, hue + sway, S, V, length=drift)
+        with seq.frame(t + drift):               # sway back
+            for led, hue in enumerate(pal):
+                seq.select(led)
+                seq.animate_hsv(hue + sway, S, V, hue - sway, S, V, length=drift)
+        with seq.frame(t + 2 * drift):           # crossfade into next theme
+            for led, hue in enumerate(pal):
+                seq.select(led)
+                seq.animate_hsv(hue - sway, S, V, nxt[led] - sway, S, V, length=fade)
+    return seq
+
+
 def build_flow() -> LedSequence:
     """Soft flowing rainbow ("переливание"): every LED slowly rotates through
     the hue wheel with a constant 90-degree offset between neighbours — a
@@ -479,8 +513,8 @@ def main() -> int:
     ap.add_argument("--upload", nargs="?", const="", metavar="PORT",
                     help="upload animation; without a value the badge port is "
                          "auto-detected (COM<n> / /dev/ttyACM<n>)")
-    ap.add_argument("--preset", choices=("flow", "rainbow", "comet"), default="flow",
-                    help="animation to build/upload (default flow)")
+    ap.add_argument("--preset", choices=("palette", "flow", "rainbow", "comet"),
+                    default="palette", help="animation to build/upload (default palette)")
     ap.add_argument("--fps", type=int, default=30, help="fps to set after upload (5..100)")
     ap.add_argument("--decode", help="hex string to decode instead of building")
     ap.add_argument("--console", nargs="+", metavar="CMD",
@@ -505,7 +539,8 @@ def main() -> int:
         return 0
 
     self_test()
-    builders = {"flow": build_flow, "rainbow": build_rainbow, "comet": build_snake}
+    builders = {"palette": build_palette, "flow": build_flow,
+                "rainbow": build_rainbow, "comet": build_snake}
     data = builders[args.preset]().compile()
     print(f"led load {len(data)}")
     print(data.hex().upper())
