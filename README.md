@@ -1,7 +1,5 @@
 # offzone-led-customizer
 
-[![skills.sh](https://skills.sh/b/d8rt8v/offzone-led-customizer)](https://skills.sh/d8rt8v/offzone-led-customizer)
-
 An agent skill (and standalone toolkit) for customizing LED animations on the
 **OFFZONE 2026 conference badge** — an STM32 board with a USB Virtual COM
 Port — right over its serial console, no flashing needed.
